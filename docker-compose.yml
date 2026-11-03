@@ -1,0 +1,43 @@
+services:
+  backend:
+    build:
+      context: .
+      target: backend
+    image: dog-classifier-backend
+    ports:
+      # Port hôte paramétrable : 8000 est souvent déjà pris par un autre projet.
+      - "${BACKEND_PORT:-8001}:8000"
+    environment:
+      MODEL_PATH: models/final_transfer_model.h5
+      CLASS_INDICES_PATH: models/class_indices.json
+    volumes:
+      # Le .h5 n'est pas dans l'image (gitignoré) : le déposer dans ./models
+      # suffit à le rendre disponible, sans reconstruire l'image.
+      - ./models:/app/models
+      - ./webapp/backend:/app/webapp/backend
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - import urllib.request; urllib.request.urlopen("http://localhost:8000/health")
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: .
+      target: frontend
+    image: dog-classifier-frontend
+    ports:
+      - "${FRONTEND_PORT:-8501}:8501"
+    environment:
+      BACKEND_URL: http://backend:8000
+    volumes:
+      - ./webapp/frontend:/app/webapp/frontend
+    depends_on:
+      - backend
+    restart: unless-stopped

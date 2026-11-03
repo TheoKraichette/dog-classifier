@@ -103,7 +103,43 @@ python scripts/train.py --model transfer --batch_size 32 --epochs 10
 
 ---
 
-## 🌐 Lancement de l'application Web
+## 🐳 Lancement avec Docker (recommandé)
+
+Aucun outillage Python n'est requis sur le poste, seulement Docker.
+
+```bash
+docker compose up -d --build
+```
+
+| Service   | URL                     | Détail                              |
+|-----------|-------------------------|-------------------------------------|
+| Frontend  | http://localhost:8501   | Interface Streamlit                 |
+| Backend   | http://localhost:8001   | API FastAPI (port 8000 en interne)  |
+| Health    | http://localhost:8001/health | État du service et du modèle   |
+| Swagger   | http://localhost:8001/docs   | Documentation interactive      |
+
+Les ports hôtes sont surchargeables (utile si un autre projet occupe déjà le port) :
+
+```bash
+BACKEND_PORT=9000 FRONTEND_PORT=9501 docker compose up -d
+```
+
+Arrêt : `docker compose down`. Logs : `docker compose logs -f backend`.
+
+### ⚠️ Modèle entraîné requis pour les prédictions
+
+Les poids `models/final_transfer_model.h5` ne sont **pas versionnés** (voir
+`.gitignore`). L'API démarre malgré leur absence, mais `/predict` renvoie une
+erreur explicite tant que le fichier manque — `/health` expose
+`"model_available": false`.
+
+Pour activer les prédictions : entraîner le modèle (voir *Entraînement* plus
+bas) puis déposer le `.h5` dans `models/`. Le dossier est monté en volume,
+un simple `docker compose restart backend` suffit — pas de rebuild.
+
+---
+
+## 🌐 Lancement de l'application Web (sans Docker)
 
 ### 1. Lancer le Backend FastAPI
 Depuis la racine :
@@ -124,6 +160,7 @@ Frontend disponible sur : http://localhost:8501
 ## 📚 API Documentation
 
 - **GET /** → Test serveur (Hello World)
+- **GET /health** → État du service, disponibilité du modèle, nombre de classes
 - **POST /predict** → Envoyer une image et obtenir les 3 meilleures prédictions
 
 Exemple réponse JSON :

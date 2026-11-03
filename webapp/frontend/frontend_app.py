@@ -1,7 +1,11 @@
 import streamlit as st
 import requests
 from PIL import Image
+import os
 import time
+
+# En Docker le backend est joignable par son nom de service, pas par localhost.
+BACKEND_URL = os.getenv("BACKEND_URL", "http://localhost:8000")
 
 st.set_page_config(page_title="Dog Breed Classifier", page_icon="🐶")
 
@@ -22,7 +26,7 @@ if uploaded_file is not None:
             files = {"file": (uploaded_file.name, file_bytes, "image/jpeg")}
 
             try:
-                response = requests.post("http://localhost:8000/predict", files=files)
+                response = requests.post(f"{BACKEND_URL}/predict", files=files, timeout=120)
 
                 if response.status_code == 200:
                     response_json = response.json()
@@ -49,4 +53,4 @@ if uploaded_file is not None:
                     st.error(f"❌ Prediction failed! Error code {response.status_code}")
 
             except requests.exceptions.ConnectionError:
-                st.error("❌ Could not connect to the FastAPI backend. Make sure it's running on http://localhost:8000")
+                st.error(f"❌ Could not connect to the FastAPI backend. Make sure it's running on {BACKEND_URL}")

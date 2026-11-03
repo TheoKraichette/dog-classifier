@@ -1,0 +1,9 @@
+# Dépendances runtime du backend FastAPI (image Docker "backend")
+# Volontairement plus étroit que le requirements.txt racine : ni torch, ni
+# opencv, ni albumentations, qui ne servent qu'à l'entraînement.
+numpy==1.24.3          # ≤1.24.3 imposé par TensorFlow 2.13.0
+tensorflow-cpu==2.13.0
+Pillow==9.5.0
+fastapi==0.95.0
+uvicorn==0.22.0
+python-multipart==0.0.6  # requis par FastAPI pour UploadFile
